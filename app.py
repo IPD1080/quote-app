@@ -23,55 +23,38 @@ if page == "Quote Generator":
         inputs_required = product_catalog[business][product]["inputs"]
 
         for field in inputs_required:
-            key = f"{product}_{field}"  # Unique key to prevent Streamlit ID conflicts
-
             if "Qty" in field or "Quantity" in field:
-                value = st.number_input(field, min_value=0, value=500, step=100, key=key)
-
+                value = st.number_input(field, min_value=0, value=100, step=50)
             elif "Sq Ft" in field or "Area" in field:
-                value = st.number_input(field, min_value=0.0, value=50.0, key=key)
-
+                value = st.number_input(field, min_value=0.0, value=50.0)
             elif field == "Size":
-                value = st.selectbox(field, ["2x4", "3x6", "4x8", "11x17", "18x24", "24x36", "4x6", "5x7", "8.5x11"], key=key)
-
+                value = st.selectbox(field, ["2x4", "3x6", "4x8", "11x17", "18x24", "24x36", "4x6", "5x7", "8.5x11", "12x12", "16x20", "12x18", "36x48"])
             elif field == "Sides":
-                value = st.selectbox(field, ["Single", "Double"], key=key)
-
-            elif field == "Grommets" or field == "Hemming":
-                value = st.selectbox(field, ["Yes", "No"], key=key)
-
+                value = st.selectbox(field, ["Single", "Double"])
+            elif field in ["Grommets", "Hemming", "Laminate?"]:
+                value = st.selectbox(field, ["Yes", "No"])
             elif field == "Coating":
-                value = st.selectbox(field, ["None", "UV", "Gloss", "Matte"], key=key)
-
+                value = st.selectbox(field, ["None", "UV", "Gloss", "Matte"])
             elif field == "Paper Type":
-                value = st.selectbox(field, ["Glossy", "Matte", "Uncoated"], key=key)
-
+                value = st.selectbox(field, ["Glossy", "Matte", "Uncoated"])
             elif field == "Shape":
-                value = st.selectbox(field, ["Circle", "Square", "Custom"], key=key)
-
+                value = st.selectbox(field, ["Circle", "Square", "Custom"])
             elif field == "Finish":
-                value = st.selectbox(field, ["Glossy", "Matte"], key=key)
-
+                value = st.selectbox(field, ["Gloss", "Matte", "Satin", "Color Flip"])
             elif field == "Fold Type":
-                value = st.selectbox(field, ["Tri-fold", "Bi-fold", "Z-fold"], key=key)
-
+                value = st.selectbox(field, ["Tri-fold", "Bi-fold", "Z-fold"])
             elif field == "Binding":
-                value = st.selectbox(field, ["Saddle Stitch", "Spiral", "Wire-O"], key=key)
-
+                value = st.selectbox(field, ["Saddle Stitch", "Spiral", "Wire-O"])
             elif field == "Print Area":
-                value = st.selectbox(field, ["Front", "Back", "Both"], key=key)
-
+                value = st.selectbox(field, ["Front", "Back", "Both"])
             elif field == "Complexity":
-                value = st.selectbox(field, ["Normal", "Complex"], key=key)
-
-            elif field == "Laminate?":
-                value = st.selectbox(field, ["Yes", "No"], key=key)
-
+                value = st.selectbox(field, ["Normal", "Complex"])
             elif field == "Number of Colors":
-                value = st.slider(field, 1, 6, 1, key=key)
-
+                value = st.slider(field, 1, 6, 1)
+            elif field in ["Color", "Font Type", "Material", "Item Type", "Vehicle Type", "Part", "Text Length", "Length", "Type"]:
+                value = st.text_input(field)
             else:
-                value = st.text_input(field, key=key)
+                value = st.text_input(field)
 
             quote["Inputs"][field] = value
 
@@ -85,7 +68,7 @@ if page == "Quote Generator":
             for k, v in quote["Outputs"].items():
                 st.write(f"{k}: ${v}")
 
-            if st.button("Save Quote"):
+            if st.button("💾 Save Quote"):
                 save_quote_to_csv(quote)
                 st.success("Quote saved to quotes.csv")
 
@@ -117,4 +100,4 @@ elif page == "Quote History":
         st.dataframe(filtered_df, use_container_width=True)
 
         csv = filtered_df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Filtered Quotes", csv, "filtered_quotes.csv", "text/csv")
+        st.download_button("📥 Download Filtered Quotes", csv, "filtered_quotes.csv", "text/csv")
