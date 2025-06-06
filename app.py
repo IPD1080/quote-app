@@ -17,18 +17,57 @@ if page == "Quote Generator":
     product = st.selectbox("Select Product", list(product_catalog[business].keys()))
     quote["Inputs"]["Product"] = product
 
-    st.subheader("Enter Product Details")
-    inputs_required = product_catalog[business][product]["inputs"]
     for field in inputs_required:
         if "Qty" in field or "Quantity" in field:
             value = st.number_input(field, min_value=0, value=500, step=100)
+
         elif "Sq Ft" in field or "Area" in field:
             value = st.number_input(field, min_value=0.0, value=50.0)
-        elif field in ["Laminate?", "Complexity"]:
-            value = st.selectbox(field, ["Yes", "No"] if "Laminate" in field else ["Normal", "Complex"])
+
+        elif field == "Size":
+            value = st.selectbox(field, ["2x4", "3x6", "4x8", "11x17", "18x24", "24x36", "4x6", "5x7", "8.5x11"])
+
+        elif field == "Sides":
+            value = st.selectbox(field, ["Single", "Double"])
+
+        elif field == "Grommets" or field == "Hemming":
+            value = st.selectbox(field, ["Yes", "No"])
+
+        elif field == "Coating":
+            value = st.selectbox(field, ["None", "UV", "Gloss", "Matte"])
+
+        elif field == "Paper Type":
+            value = st.selectbox(field, ["Glossy", "Matte", "Uncoated"])
+
+        elif field == "Shape":
+            value = st.selectbox(field, ["Circle", "Square", "Custom"])
+
+        elif field == "Finish":
+            value = st.selectbox(field, ["Glossy", "Matte"])
+
+        elif field == "Fold Type":
+            value = st.selectbox(field, ["Tri-fold", "Bi-fold", "Z-fold"])
+
+        elif field == "Binding":
+            value = st.selectbox(field, ["Saddle Stitch", "Spiral", "Wire-O"])
+
+        elif field == "Print Area":
+            value = st.selectbox(field, ["Front", "Back", "Both"])
+
+        elif field == "Complexity":
+            value = st.selectbox(field, ["Normal", "Complex"])
+
+        elif field == "Laminate?":
+            value = st.selectbox(field, ["Yes", "No"])
+
+        elif field == "Number of Colors":
+            value = st.slider(field, 1, 6, 1)
+
         else:
             value = st.text_input(field)
+
         quote["Inputs"][field] = value
+
 
     quote["Inputs"]["Customer Name"] = st.text_input("Customer Name")
     quote["System"]["Business"] = business
