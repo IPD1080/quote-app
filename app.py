@@ -11,7 +11,7 @@ st.set_page_config(page_title="Independent Print & Wrap Quote Manager", layout="
 
 # Sidebar branding
 logo = Image.open("ipd_logo.png")  # make sure this file is in your repo
-st.sidebar.image(logo, use_column_width=True)
+use_container_width=True
 st.sidebar.markdown("### [Visit IndependentPrint.com](https://www.independentprint.com)")
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Quote Generator", "Quote History"])
