@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 st.set_page_config(page_title="Quote Manager", layout="wide")
-st.sidebar.title("\ud83d\udccb Navigation")
+st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Quote Generator", "Quote History"])
 
 # ------------------- QUOTE GENERATOR -------------------
@@ -85,13 +85,13 @@ if page == "Quote Generator":
             for k, v in quote["Outputs"].items():
                 st.write(f"{k}: ${v}")
 
-            if st.button("\ud83d\udcbe Save Quote"):
+            if st.button("Save Quote"):
                 save_quote_to_csv(quote)
                 st.success("Quote saved to quotes.csv")
 
 # ------------------- QUOTE HISTORY -------------------
 elif page == "Quote History":
-    st.title("\ud83d\udcd3 Quote History")
+    st.title("Quote History")
     path = Path("quotes.csv")
     if not path.exists():
         st.info("No quotes have been saved yet.")
@@ -117,4 +117,4 @@ elif page == "Quote History":
         st.dataframe(filtered_df, use_container_width=True)
 
         csv = filtered_df.to_csv(index=False).encode("utf-8")
-        st.download_button("\ud83d\udcc5 Download Filtered Quotes", csv, "filtered_quotes.csv", "text/csv")
+        st.download_button("Download Filtered Quotes", csv, "filtered_quotes.csv", "text/csv")
