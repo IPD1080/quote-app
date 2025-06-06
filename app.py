@@ -5,12 +5,14 @@ from utils import save_quote_to_csv
 from datetime import datetime
 from pathlib import Path
 
-st.set_page_config(page_title="Quote Manager", layout="wide")
-st.sidebar.title("Navigation")
+st.set_page_config(page_title="Independent Print & Wrap Quote Manager", layout="wide")
+st.sidebar.title("Independent Print & Design")
+st.sidebar.markdown("[www.independentprint.com](https://www.independentprint.com)")
 page = st.sidebar.radio("Go to", ["Quote Generator", "Quote History"])
 
 # ------------------- QUOTE GENERATOR -------------------
 if page == "Quote Generator":
+    st.title("📄 Quote Generator")
     business = st.radio("Select Business", list(product_catalog.keys()))
     quote = create_base_quote(business)
 
@@ -20,18 +22,21 @@ if page == "Quote Generator":
 
     if product in product_catalog[business]:
         st.subheader("Enter Product Details")
-        inputs_required = product_catalog[business][product]["inputs"]
+        inputs_required = product_catalog[business][product].get("inputs", [])
 
         for field in inputs_required:
             if "Qty" in field or "Quantity" in field:
                 value = st.number_input(field, min_value=0, value=100, step=50)
-            elif "Sq Ft" in field or "Area" in field:
-                value = st.number_input(field, min_value=0.0, value=50.0)
+            elif "Sq Ft" in field or "Area" in field or "Length" in field:
+                value = st.number_input(field, min_value=0.0, value=10.0)
             elif field == "Size":
-                value = st.selectbox(field, ["2x4", "3x6", "4x8", "11x17", "18x24", "24x36", "4x6", "5x7", "8.5x11", "12x12", "16x20", "12x18", "36x48"])
+                value = st.selectbox(field, [
+                    "2x4", "3x6", "4x8", "11x17", "18x24", "24x36", "4x6", "5x7", "8.5x11",
+                    "12x12", "16x20", "12x18", "36x48"
+                ])
             elif field == "Sides":
                 value = st.selectbox(field, ["Single", "Double"])
-            elif field in ["Grommets", "Hemming", "Laminate?"]:
+            elif field in ["Grommets", "Hemming", "Laminate?", "Back Print", "Include Laminate"]:
                 value = st.selectbox(field, ["Yes", "No"])
             elif field == "Coating":
                 value = st.selectbox(field, ["None", "UV", "Gloss", "Matte"])
@@ -51,7 +56,7 @@ if page == "Quote Generator":
                 value = st.selectbox(field, ["Normal", "Complex"])
             elif field == "Number of Colors":
                 value = st.slider(field, 1, 6, 1)
-            elif field in ["Color", "Font Type", "Material", "Item Type", "Vehicle Type", "Part", "Text Length", "Length", "Type"]:
+            elif field in ["Color", "Font Type", "Material", "Item Type", "Vehicle Type", "Part", "Text Length", "Graphic Count", "Vehicle Count", "Panel Count"]:
                 value = st.text_input(field)
             else:
                 value = st.text_input(field)
@@ -74,7 +79,7 @@ if page == "Quote Generator":
 
 # ------------------- QUOTE HISTORY -------------------
 elif page == "Quote History":
-    st.title("Quote History")
+    st.title("📚 Quote History")
     path = Path("quotes.csv")
     if not path.exists():
         st.info("No quotes have been saved yet.")
