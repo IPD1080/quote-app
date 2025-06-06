@@ -9,6 +9,11 @@ st.set_page_config(page_title="Independent Print & Wrap Quote Manager", layout="
 st.sidebar.title("Independent Print & Design")
 st.sidebar.markdown("[www.independentprint.com](https://www.independentprint.com)")
 page = st.sidebar.radio("Go to", ["Quote Generator", "Quote History"])
+logo = Image.open("IPD LOGO (1).png")
+st.sidebar.image(logo, use_column_width=True)
+
+st.sidebar.markdown("### [Visit IndependentPrint.com](https://www.independentprint.com)")
+st.sidebar.title("Navigation")
 
 # ------------------- QUOTE GENERATOR -------------------
 if page == "Quote Generator":
