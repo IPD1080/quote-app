@@ -16,7 +16,42 @@ def save_quote_to_csv(quote, filename='quotes.csv'):
             writer.writeheader()
         writer.writerow(data)
 
-def export_quote_to_pdf(quote, filename='quote.pdf'):
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.utils import ImageReader
+
+def export_quote_to_pdf(quote_data, filename="quote.pdf"):
+    c = canvas.Canvas(filename, pagesize=letter)
+    width, height = letter
+
+    # Draw logo at top left
+    try:
+        logo = ImageReader("IPD LOGO.png")
+        c.drawImage(logo, 50, height - 120, width=120, preserveAspectRatio=True, mask='auto')
+    except:
+        pass
+
+    # Add company contact info
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(200, height - 60, "Independent Print & Design")
+    c.setFont("Helvetica", 10)
+    c.drawString(200, height - 75, "1080 Holland Drive, Suite 3")
+    c.drawString(200, height - 90, "Boca Raton, FL 33487")
+    c.drawString(200, height - 105, "Phone: 561-223-1111")
+    c.drawString(200, height - 120, "orders@independentprint.com")
+
+    # Quote info
+    y = height - 160
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(50, y, f"Quote for: {quote_data['Inputs'].get('Customer Name', 'Customer')}")
+    y -= 20
+
+    for key, value in quote_data["Outputs"].items():
+        c.setFont("Helvetica", 10)
+        c.drawString(50, y, f"{key}: ${value}")
+        y -= 15
+
+    c.save()
     customer = quote["Inputs"].get("Customer Name", "Customer")
     html = f"""
     <html><head><style>
