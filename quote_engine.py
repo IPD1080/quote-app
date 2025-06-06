@@ -1,108 +1,103 @@
+import streamlit as st
+import pandas as pd
+from quote_engine import create_base_quote, calculate_quote, product_catalog
+from utils import save_quote_to_csv
 from datetime import datetime
+from pathlib import Path
 
-product_catalog = {
-    "Independent Print": {
-        ...  # Existing print products stay the same
-    },
-    "Independent Wraps": {
-        ...  # Existing wrap products stay the same
-    }
-}
+st.set_page_config(page_title="Quote Manager", layout="wide")
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Quote Generator", "Quote History"])
 
-def create_base_quote(business='Independent Print'):
-    return {
-        "Business": business,
-        "Inputs": {},
-        "Outputs": {
-            "Product": "",
-            "Base Cost": 0.0,
-            "Add-ons": 0.0,
-            "Tax": 0.0,
-            "Total Estimate": 0.0
-        },
-        "System": {
-            "Created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Status": "Draft"
-        }
-    }
+# ------------------- QUOTE GENERATOR -------------------
+if page == "Quote Generator":
+    business = st.radio("Select Business", list(product_catalog.keys()))
+    quote = create_base_quote(business)
 
-def calculate_product_price(business, product, inputs):
-    info = product_catalog[business].get(product)
-    if not info:
-        return 0.0
+    products = list(product_catalog[business].keys())
+    product = st.selectbox("Select Product", products)
+    quote["Inputs"]["Product"] = product
 
-    if business == "Independent Print":
-        qty = int(inputs.get("Quantity", 0))
-        if "pricing" in info:
-            return info["pricing"].get(qty, 0.0) if isinstance(info["pricing"], dict) else 0.0
-        elif "price_per_100" in info:
-            return round((qty / 100) * info["price_per_100"], 2)
-        elif product == "Stretched Canvas Prints" or product == "Acrylic Prints" or product == "Window Clings":
-            size = inputs.get("Size", "")
-            return info["pricing"].get(size, 0.0) * qty
-        elif product == "Wall Decals":
-            size = inputs.get("Size", "")
-            return info["pricing"].get(size, 0.0)
-        elif product == "Apparel":
-            colors = int(inputs.get("Number of Colors", 1))
-            area = inputs.get("Print Area", "Front")
-            base = info["base_price_per_unit"]
-            extra = (colors - 1) * info["extra_color_cost"]
-            back = info["back_print_cost"] if area == "Both" else 0
-            return round(qty * (base + extra + back), 2)
+    if product in product_catalog[business]:
+        st.subheader("Enter Product Details")
+        inputs_required = product_catalog[business][product].get("inputs", [])
 
-    elif business == "Independent Wraps":
-        if product == "Partial Wrap":
-            sqft = float(inputs.get("Sq Ft", 0))
-            return round(sqft * info["base_price_per_sqft"], 2)
-        elif product == "Spot Graphics":
-            count = int(inputs.get("Graphic Count", 0))
-            return round(count * info["price_per_graphic"], 2)
-        elif product == "Vehicle Lettering":
-            return info["base_price"]
-        elif product == "Window Decals":
-            size = inputs.get("Size", "")
-            return info["pricing"].get(size, 0.0)
-        elif product == "Fleet Graphics":
-            count = int(inputs.get("Vehicle Count", 0))
-            return count * info["base_price_per_vehicle"]
-        elif product == "Color Change Wrap":
-            vtype = inputs.get("Vehicle Type", "")
-            return info["pricing"].get(vtype, 0.0)
-        elif product == "Chrome Delete":
-            parts = int(inputs.get("Parts", 0))
-            return parts * info["price_per_part"]
-        elif product in ["Roof Wrap", "Hood Wrap"]:
-            size = inputs.get("Size", "")
-            return info["pricing"].get(size, 0.0)
-        elif product == "Racing Stripes":
-            length = float(inputs.get("Length", 0))
-            return round(length * info["price_per_foot"], 2)
-        elif product == "Carbon Fiber Accents":
-            return info["base_price"]
-        elif product == "Paint Protection Film":
-            count = int(inputs.get("Panel Count", 0))
-            return count * info["price_per_panel"]
-        elif product == "Reflective Wrap":
-            sqft = float(inputs.get("Sq Ft", 0))
-            return sqft * info["price_per_sqft"]
-        elif product == "Finish Options":
-            finish = inputs.get("Finish", "Gloss")
-            return info["pricing"].get(finish, 0.0)
+        for field in inputs_required:
+            if "Qty" in field or "Quantity" in field:
+                value = st.number_input(field, min_value=0, value=100, step=50)
+            elif "Sq Ft" in field or "Area" in field:
+                value = st.number_input(field, min_value=0.0, value=50.0)
+            elif field == "Size":
+                value = st.selectbox(field, ["2x4", "3x6", "4x8", "11x17", "18x24", "24x36", "4x6", "5x7", "8.5x11", "12x12", "16x20", "12x18", "36x48"])
+            elif field == "Sides":
+                value = st.selectbox(field, ["Single", "Double"])
+            elif field in ["Grommets", "Hemming", "Laminate?"]:
+                value = st.selectbox(field, ["Yes", "No"])
+            elif field == "Coating":
+                value = st.selectbox(field, ["None", "UV", "Gloss", "Matte"])
+            elif field == "Paper Type":
+                value = st.selectbox(field, ["Glossy", "Matte", "Uncoated"])
+            elif field == "Shape":
+                value = st.selectbox(field, ["Circle", "Square", "Custom"])
+            elif field == "Finish":
+                value = st.selectbox(field, ["Gloss", "Matte", "Satin", "Color Flip"])
+            elif field == "Fold Type":
+                value = st.selectbox(field, ["Tri-fold", "Bi-fold", "Z-fold"])
+            elif field == "Binding":
+                value = st.selectbox(field, ["Saddle Stitch", "Spiral", "Wire-O"])
+            elif field == "Print Area":
+                value = st.selectbox(field, ["Front", "Back", "Both"])
+            elif field == "Complexity":
+                value = st.selectbox(field, ["Normal", "Complex"])
+            elif field == "Number of Colors":
+                value = st.slider(field, 1, 6, 1)
+            elif field in ["Color", "Font Type", "Material", "Item Type", "Vehicle Type", "Part", "Text Length", "Length", "Type", "Graphic Count", "Vehicle Count", "Panel Count"]:
+                value = st.text_input(field)
+            else:
+                value = st.text_input(field)
 
-    return 0.0
+            quote["Inputs"][field] = value
 
-def calculate_quote(quote):
-    business = quote["Business"]
-    product = quote["Inputs"].get("Product", "")
-    inputs = quote["Inputs"]
-    base_cost = calculate_product_price(business, product, inputs)
-    tax = base_cost * 0.07
-    total = base_cost + tax
+        quote["Inputs"]["Customer Name"] = st.text_input("Customer Name")
+        quote["System"]["Business"] = business
+        quote["System"]["Created"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    quote["Outputs"]["Product"] = product
-    quote["Outputs"]["Base Cost"] = round(base_cost, 2)
-    quote["Outputs"]["Tax"] = round(tax, 2)
-    quote["Outputs"]["Total Estimate"] = round(total, 2)
+        if st.button("Calculate Quote"):
+            quote = calculate_quote(quote)
+            st.subheader("Quote Summary")
+            for k, v in quote["Outputs"].items():
+                st.write(f"{k}: ${v}")
 
-    return quote
+            if st.button("💾 Save Quote"):
+                save_quote_to_csv(quote)
+                st.success("Quote saved to quotes.csv")
+
+# ------------------- QUOTE HISTORY -------------------
+elif page == "Quote History":
+    st.title("Quote History")
+    path = Path("quotes.csv")
+    if not path.exists():
+        st.info("No quotes have been saved yet.")
+    else:
+        df = pd.read_csv(path)
+        st.subheader("Filters")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            business_filter = st.selectbox("Filter by Business", ["All"] + sorted(df["Business"].unique()))
+        with col2:
+            customer_filter = st.text_input("Filter by Customer Name")
+        with col3:
+            product_filter = st.selectbox("Filter by Product", ["All"] + sorted(df["Product"].unique()))
+
+        filtered_df = df.copy()
+        if business_filter != "All":
+            filtered_df = filtered_df[filtered_df["Business"] == business_filter]
+        if customer_filter:
+            filtered_df = filtered_df[filtered_df["Customer Name"].str.contains(customer_filter, case=False, na=False)]
+        if product_filter != "All":
+            filtered_df = filtered_df[filtered_df["Product"] == product_filter]
+
+        st.dataframe(filtered_df, use_container_width=True)
+
+        csv = filtered_df.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Filtered Quotes", csv, "filtered_quotes.csv", "text/csv")
