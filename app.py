@@ -6,35 +6,15 @@ from datetime import datetime
 from pathlib import Path
 from PIL import Image
 
-# ------------------- BRANDING -------------------
+# Set up the app
 st.set_page_config(page_title="Independent Print & Wrap Quote Manager", layout="wide")
 
-# Load logo
-logo = Image.open("assets/ipd_logo.png")
-
-# Sidebar
-with st.sidebar:
-    st.image(logo, use_container_width=True)
-    st.markdown("### **Independent Print & Design**", unsafe_allow_html=True)
-    st.markdown("[🌐 www.independentprint.com](https://www.independentprint.com)")
-    st.markdown("---")
-    page = st.radio("📋 Menu", ["Quote Generator", "Quote History"])
-
-# Custom styling
-st.markdown(
-    """
-    <style>
-    body { background-color: #000; }
-    .stApp { background-color: #111111; color: #f9f9f9; }
-    .st-emotion-cache-1v0mbdj { color: #FFA500 !important; } /* section titles */
-    .stRadio > div > label { color: white !important; }
-    .stSelectbox label, .stTextInput label, .stNumberInput label { color: orange !important; }
-    .stDownloadButton button { background-color: orange; color: black; }
-    .stButton button { background-color: orange; color: black; }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Sidebar branding
+logo = Image.open("ipd_logo.png")  # make sure this file is in your repo
+st.sidebar.image(logo, use_column_width=True)
+st.sidebar.markdown("### [Visit IndependentPrint.com](https://www.independentprint.com)")
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Quote Generator", "Quote History"])
 
 # ------------------- QUOTE GENERATOR -------------------
 if page == "Quote Generator":
