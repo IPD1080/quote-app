@@ -1,7 +1,6 @@
-
 from datetime import datetime
 
-# Product catalog with inputs and pricing logic
+# Extended product catalog with more items and tiered pricing
 product_catalog = {
     "Independent Print": {
         "Business Cards": {
@@ -11,6 +10,40 @@ product_catalog = {
         "Flyers": {
             "inputs": ["Quantity", "Size", "Folding"],
             "price_per_100": 18
+        },
+        "Postcards": {
+            "inputs": ["Quantity", "Size", "Paper Type", "Coating"],
+            "pricing": {100: 25, 250: 45, 500: 65, 1000: 100}
+        },
+        "Brochures": {
+            "inputs": ["Quantity", "Size", "Fold Type", "Paper Type"],
+            "pricing": {100: 60, 250: 110, 500: 200, 1000: 350}
+        },
+        "Posters": {
+            "inputs": ["Size", "Paper Type", "Quantity"],
+            "per_unit_price": {"11x17": 10, "18x24": 15, "24x36": 25}
+        },
+        "Vinyl Banners": {
+            "inputs": ["Size", "Grommets", "Hemming"],
+            "pricing": {"2x4": 40, "3x6": 60, "4x8": 80}
+        },
+        "Yard Signs": {
+            "inputs": ["Size", "Sides", "Quantity"],
+            "price_per_unit": {"Single": 12.99, "Double": 17.99}
+        },
+        "Stickers": {
+            "inputs": ["Size", "Shape", "Quantity", "Finish"],
+            "pricing": {100: 50, 250: 100, 500: 150}
+        },
+        "Calendars": {
+            "inputs": ["Quantity", "Size", "Binding", "Pages"],
+            "pricing": {100: 300, 250: 700, 500: 1200}
+        },
+        "T-Shirts": {
+            "inputs": ["Quantity", "Shirt Color", "Print Area", "Number of Colors"],
+            "base_price_per_shirt": 10,
+            "extra_color_cost": 2,
+            "back_print_cost": 5
         }
     },
     "Independent Wraps": {
@@ -43,31 +76,54 @@ def create_base_quote(business='Independent Print'):
     }
 
 def calculate_product_price(business, product, inputs):
-    if business not in product_catalog or product not in product_catalog[business]:
+    info = product_catalog[business].get(product)
+    if not info:
         return 0.0
 
-    info = product_catalog[business][product]
-
     if business == "Independent Print":
-        if product == "Business Cards":
+        if product in ["Business Cards", "Postcards", "Brochures", "Stickers", "Calendars"]:
             qty = int(inputs.get("Quantity", 0))
             return info["pricing"].get(qty, 0.0)
+
         elif product == "Flyers":
             qty = int(inputs.get("Quantity", 0))
             return round((qty / 100) * info["price_per_100"], 2)
 
+        elif product == "Posters":
+            qty = int(inputs.get("Quantity", 0))
+            size = inputs.get("Size", "11x17")
+            return qty * info["per_unit_price"].get(size, 0)
+
+        elif product == "Vinyl Banners":
+            size = inputs.get("Size", "2x4")
+            return info["pricing"].get(size, 0.0)
+
+        elif product == "Yard Signs":
+            qty = int(inputs.get("Quantity", 0))
+            sides = inputs.get("Sides", "Single")
+            unit_price = info["price_per_unit"].get(sides, 12.99)
+            return round(qty * unit_price, 2)
+
+        elif product == "T-Shirts":
+            qty = int(inputs.get("Quantity", 0))
+            colors = int(inputs.get("Number of Colors", 1))
+            area = inputs.get("Print Area", "Front")
+            base = info["base_price_per_shirt"]
+            extra_color_cost = (colors - 1) * info["extra_color_cost"]
+            back = info["back_print_cost"] if area == "Both" else 0
+            return round(qty * (base + extra_color_cost + back), 2)
+
     elif business == "Independent Wraps":
         if product == "Full Wrap":
             sqft = float(inputs.get("Sq Ft", 0))
-            complexity = inputs.get("Complexity", "Normal")
-            multiplier = 1.2 if complexity == "Complex" else 1.0
+            multiplier = 1.2 if inputs.get("Complexity", "Normal") == "Complex" else 1.0
             return round(sqft * info["base_price_per_sqft"] * multiplier, 2)
+
         elif product == "Window Perf":
             sqft = float(inputs.get("Area (Sq Ft)", 0))
-            laminate = inputs.get("Laminate?", "No")
             price = sqft * info["price_per_sqft"]
-            if laminate == "Yes":
-                price += sqft * 2  # $2 per sq ft for laminate
+            if inputs.get("Laminate?", "No") == "Yes":
+                price += sqft * 2
             return round(price, 2)
 
     return 0.0
